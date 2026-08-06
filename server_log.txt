@@ -1,0 +1,7 @@
+
+========================================
+  FTC Mirror Server
+  Local: http://127.0.0.1:3000
+  Serving: C:\Users\SAM\OneDrive\Desktop\FTC\site
+========================================
+

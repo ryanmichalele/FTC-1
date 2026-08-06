@@ -1,0 +1,13 @@
+node_modules/
+.netlify/
+dist/
+server_log.txt
+system/files/
+site/system/files/
+site/sites/default/files/attachments/
+*.pdf
+*.doc
+*.docx
+*.zip
+*.map
+sitemap*.xml
