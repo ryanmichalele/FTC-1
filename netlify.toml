@@ -1,0 +1,12 @@
+[build]
+  publish = "site"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/report-fraud/ftc-circle.png"
+  [headers.values]
+  Cache-Control = "public, max-age=86400"
